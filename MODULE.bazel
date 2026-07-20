@@ -1,0 +1,29 @@
+module(name = "compiler-toolchain")
+
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name="libyaml", version="0.2.5")
+bazel_dep(name = "gcc_toolchain")
+
+# # This can be removed once gcc_toolchain is updated to support Bazel 9.0.0
+# # See PRs: 
+# #  - https://github.com/f0rmiga/gcc-toolchain/pull/217
+# #  - https://github.com/bazelbuild/bazel-central-registry/pull/7391
+git_override(
+    module_name = "gcc_toolchain",
+    commit = "afb8939c503cebc6c6a44d34d091365ebfc8edc3",
+    remote = "https://github.com/ljessendk/gcc-toolchain.git",
+)
+
+gcc_toolchains = use_extension("@gcc_toolchain//toolchain:module_extensions.bzl", "gcc_toolchains", dev_dependency = True)
+
+gcc_toolchains.toolchain(
+    name = "gcc_toolchain_x86_64",
+    target_arch = "x86_64",
+    gcc_version = "15.2.0",
+)
+use_repo(gcc_toolchains, "gcc_toolchain_x86_64")
+
+register_toolchains(
+    "@gcc_toolchain_x86_64//:cc_toolchain",
+    dev_dependency = True,
+)
